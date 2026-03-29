@@ -58,7 +58,6 @@ const DEFAULT_STATE = {
   showAurora: false,
   showWaves: true,
   waveBrightness: 0.2,
-  highQualityMode: false,
 };
 
 export default function App() {
@@ -85,7 +84,6 @@ export default function App() {
   const [showAurora, setShowAurora] = useState(DEFAULT_STATE.showAurora);
   const [showWaves, setShowWaves] = useState(DEFAULT_STATE.showWaves);
   const [waveBrightness, setWaveBrightness] = useState(DEFAULT_STATE.waveBrightness);
-  const [highQualityMode, setHighQualityMode] = useState(DEFAULT_STATE.highQualityMode);
   
   const [showSettings, setShowSettings] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -120,7 +118,6 @@ export default function App() {
         setShowAurora(parsed.showAurora ?? DEFAULT_STATE.showAurora);
         setShowWaves(parsed.showWaves ?? DEFAULT_STATE.showWaves);
         setWaveBrightness(parsed.waveBrightness ?? DEFAULT_STATE.waveBrightness);
-        setHighQualityMode(parsed.highQualityMode ?? DEFAULT_STATE.highQualityMode);
       }
       
       const savedPresets = localStorage.getItem('award_presets');
@@ -140,7 +137,7 @@ export default function App() {
       titleFont, subtitleFont, bgTextFont,
       titleBold, subtitleBold, bgTextBold,
       bgTextSpeed, bgTextMaxCount, bgTextOpacity,
-      showLights, showAurora, showWaves, waveBrightness, highQualityMode
+      showLights, showAurora, showWaves, waveBrightness
     };
     localStorage.setItem('award_current_settings', JSON.stringify(currentSettings));
   }, [
@@ -149,7 +146,7 @@ export default function App() {
     titleFont, subtitleFont, bgTextFont,
     titleBold, subtitleBold, bgTextBold,
     bgTextSpeed, bgTextMaxCount, bgTextOpacity,
-    showLights, showAurora, showWaves, waveBrightness, highQualityMode
+    showLights, showAurora, showWaves, waveBrightness
   ]);
 
   const handleSavePreset = () => {
@@ -160,7 +157,7 @@ export default function App() {
       titleFont, subtitleFont, bgTextFont,
       titleBold, subtitleBold, bgTextBold,
       bgTextSpeed, bgTextMaxCount, bgTextOpacity,
-      showLights, showAurora, showWaves, highQualityMode
+      showLights, showAurora, showWaves
     };
     const newPresets = { ...presets, [presetName]: currentSettings };
     setPresets(newPresets);
@@ -189,7 +186,6 @@ export default function App() {
     setShowLights(p.showLights ?? DEFAULT_STATE.showLights);
     setShowAurora(p.showAurora ?? DEFAULT_STATE.showAurora);
     setShowWaves(p.showWaves ?? DEFAULT_STATE.showWaves);
-    setHighQualityMode(p.highQualityMode ?? DEFAULT_STATE.highQualityMode);
   };
 
   const handleDeletePreset = (name: string) => {
@@ -255,7 +251,11 @@ export default function App() {
   const bgTextArray = bgTexts.split('\n').map(t => t.trim()).filter(t => t !== '');
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-black text-white font-serif">
+    <div 
+      className="relative w-screen h-screen overflow-hidden bg-black text-white font-serif select-none touch-none"
+      draggable="false"
+      onDragStart={(e) => e.preventDefault()}
+    >
       <ParticleBackground 
         showLights={showLights}
         showAurora={showAurora}
@@ -318,7 +318,7 @@ export default function App() {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="absolute top-0 right-0 bottom-0 w-96 bg-black/90 backdrop-blur-md border-l border-yellow-500/30 z-50 overflow-y-auto shadow-2xl shadow-black"
+            className="absolute top-0 right-0 bottom-0 w-96 bg-black/90 backdrop-blur-md border-l border-yellow-500/30 z-50 overflow-y-auto shadow-2xl shadow-black touch-auto"
           >
             <div className="sticky top-0 bg-black/90 backdrop-blur-md z-20 pb-4 mb-6 border-b border-yellow-500/30 px-6 pt-6 flex justify-between items-center">
               <h2 className="text-2xl font-serif text-yellow-500 tracking-widest uppercase">설정</h2>
@@ -553,10 +553,6 @@ export default function App() {
                   <label className="flex items-center justify-between text-sm text-gray-300 cursor-pointer">
                     <span>물결 효과 (Waves)</span>
                     <input type="checkbox" checked={showWaves} onChange={(e) => setShowWaves(e.target.checked)} className="accent-yellow-500 w-4 h-4" />
-                  </label>
-                  <label className="flex items-center justify-between text-sm text-gray-300 cursor-pointer border-t border-yellow-500/20 pt-3 mt-1">
-                    <span>고사양 모드 (High Quality)</span>
-                    <input type="checkbox" checked={highQualityMode} onChange={(e) => setHighQualityMode(e.target.checked)} className="accent-yellow-500 w-4 h-4" />
                   </label>
                   {showWaves && (
                     <div className="flex items-center gap-4 pl-2">
