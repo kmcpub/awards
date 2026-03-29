@@ -309,13 +309,18 @@ export default function App() {
       {/* Settings Panel */}
       <AnimatePresence>
         {showSettings && (
-          <motion.div
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="absolute top-0 right-0 bottom-0 w-96 bg-black/90 backdrop-blur-md border-l border-yellow-500/30 z-50 overflow-y-auto shadow-2xl shadow-black"
-          >
+          <>
+            <div 
+              className="absolute inset-0 z-40"
+              onClick={() => setShowSettings(false)}
+            />
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="absolute top-0 right-0 bottom-0 w-96 bg-black/90 backdrop-blur-md border-l border-yellow-500/30 z-50 overflow-y-auto shadow-2xl shadow-black"
+            >
             <div className="sticky top-0 bg-black/90 backdrop-blur-md z-20 pb-4 mb-6 border-b border-yellow-500/30 px-6 pt-6 flex justify-between items-center">
               <h2 className="text-2xl font-serif text-yellow-500 tracking-widest uppercase">설정</h2>
               <button onClick={() => setShowSettings(false)} className="text-gray-400 hover:text-white">
@@ -582,6 +587,7 @@ export default function App() {
               </div>
             </div>
           </motion.div>
+          </>
         )}
       </AnimatePresence>
     </div>
