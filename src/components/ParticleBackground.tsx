@@ -190,23 +190,24 @@ const ParticleBackground: React.FC<ParticleBackgroundProps> = ({
         
         ctx.fillStyle = `rgba(255, 190, 80, ${opacity})`;
         
-        ctx.beginPath();
+        const drawLines = progress > 0.3;
+        if (drawLines) {
+          ctx.beginPath();
+        }
+
         for (let x = 0; x <= width; x += 15) {
           const y = baseY + Math.sin(x * frequency + time * speed + phase) * amplitude;
           const dotSize = 0.5 + progress * 1.5;
-          ctx.moveTo(x + dotSize, y);
-          ctx.arc(x, y, dotSize, 0, Math.PI * 2);
-        }
-        ctx.fill();
-
-        // Connecting glowing line for the brighter front waves
-        if (progress > 0.3) {
-          ctx.beginPath();
-          for (let x = 0; x <= width; x += 15) {
-            const y = baseY + Math.sin(x * frequency + time * speed + phase) * amplitude;
+          ctx.fillRect(x - dotSize, y - dotSize, dotSize * 2, dotSize * 2);
+          
+          if (drawLines) {
             if (x === 0) ctx.moveTo(x, y);
             else ctx.lineTo(x, y);
           }
+        }
+
+        // Connecting glowing line for the brighter front waves
+        if (drawLines) {
           // Simulate glow with a thicker, lower-opacity stroke instead of expensive shadowBlur
           if (progress > 0.5) {
             ctx.lineWidth = progress * 1.5 + 4;

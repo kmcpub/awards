@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 interface FlyingTextProps {
   texts: string[];
@@ -18,6 +18,7 @@ interface ActiveText {
   speed: number;
   size: number;
   opacity: number;
+  element?: HTMLDivElement;
 }
 
 const FlyingTextManager: React.FC<FlyingTextProps> = ({ 
@@ -29,20 +30,21 @@ const FlyingTextManager: React.FC<FlyingTextProps> = ({
   maxCount, 
   opacityMultiplier 
 }) => {
-  const [renderTrigger, setRenderTrigger] = useState(0);
-  const activeTextsRef = useRef<ActiveText[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const requestRef = useRef<number>();
   const idCounter = useRef(0);
   const lastTimeRef = useRef<number>(0);
   const textBagRef = useRef<string[]>([]);
   const lastSpawnedTextRef = useRef<string>('');
+  const activeTextsRef = useRef<ActiveText[]>([]);
 
   useEffect(() => {
     const validTexts = texts.filter(t => t.trim() !== '');
     if (validTexts.length === 0 || maxCount <= 0) {
+      if (containerRef.current) {
+        containerRef.current.innerHTML = '';
+      }
       activeTextsRef.current = [];
-      setRenderTrigger(v => v + 1);
       return;
     }
 
@@ -83,14 +85,33 @@ const FlyingTextManager: React.FC<FlyingTextProps> = ({
         attempts++;
       }
 
+      const id = idCounter.current++;
+      
+      // Create DOM element
+      const el = document.createElement('div');
+      el.className = "absolute whitespace-nowrap text-yellow-600 tracking-widest uppercase";
+      el.style.fontSize = `${size}vw`;
+      el.style.opacity = `${opacity}`;
+      el.style.fontFamily = fontFamily;
+      el.style.fontWeight = isBold ? 'bold' : 'normal';
+      el.style.textShadow = '0 0 20px rgba(255, 215, 0, 0.3)';
+      // Use will-change for performance
+      el.style.willChange = 'transform';
+      el.innerText = text;
+      
+      if (containerRef.current) {
+        containerRef.current.appendChild(el);
+      }
+
       return {
-        id: idCounter.current++,
+        id,
         text,
         x,
         y,
         speed,
         size,
         opacity,
+        element: el
       };
     };
 
@@ -102,91 +123,80 @@ const FlyingTextManager: React.FC<FlyingTextProps> = ({
       // Adjust speed based on delta time to ensure smooth movement regardless of framerate
       const timeScale = deltaTime / 16.66;
 
-      let next = activeTextsRef.current;
-      let needsRender = false;
+      let currentTexts = activeTextsRef.current;
+      const nextTexts: ActiveText[] = [];
 
-      // Update positions
-      for (let i = 0; i < next.length; i++) {
-        next[i].x -= next[i].speed * timeScale;
-      }
-
-      // Remove off-screen
-      const originalLength = next.length;
-      next = next.filter((t) => t.x > -200);
-      if (next.length !== originalLength) needsRender = true;
-
-      // Ensure up to maxCount
-      while (next.length < maxCount) {
-        next.push(spawnText(undefined, next));
-        needsRender = true;
-      }
-      
-      // If maxCount was reduced, trim the array
-      if (next.length > maxCount) {
-        next = next.slice(0, maxCount);
-        needsRender = true;
-      }
-      
-      activeTextsRef.current = next;
-
-      // Direct DOM update for positions to bypass React render cycle
-      if (containerRef.current) {
-        const children = containerRef.current.children;
-        for (let i = 0; i < children.length; i++) {
-          const child = children[i] as HTMLElement;
-          const textData = next[i];
-          if (textData) {
-            child.style.transform = `translate3d(${textData.x}vw, -50%, 0)`;
+      for (let i = 0; i < currentTexts.length; i++) {
+        const t = currentTexts[i];
+        t.x -= t.speed * timeScale;
+        
+        if (t.x > -200) {
+          if (t.element) {
+            // Use translate3d for hardware acceleration
+            t.element.style.transform = `translate3d(${t.x}vw, ${t.y}vh, 0) translateY(-50%)`;
+          }
+          nextTexts.push(t);
+        } else {
+          // Remove element from DOM
+          if (t.element && t.element.parentNode) {
+            t.element.parentNode.removeChild(t.element);
           }
         }
       }
 
-      if (needsRender) {
-        setRenderTrigger(v => v + 1);
+      // Ensure up to maxCount
+      while (nextTexts.length < maxCount) {
+        nextTexts.push(spawnText(undefined, nextTexts));
       }
-
+      
+      // If maxCount was reduced, trim the array
+      while (nextTexts.length > maxCount) {
+        const t = nextTexts.pop();
+        if (t && t.element && t.element.parentNode) {
+          t.element.parentNode.removeChild(t.element);
+        }
+      }
+      
+      activeTextsRef.current = nextTexts;
       requestRef.current = requestAnimationFrame(updateTexts);
     };
+
+    // Clear existing elements
+    if (containerRef.current) {
+      containerRef.current.innerHTML = '';
+    }
 
     // Always respawn all texts when settings change
     const initial: ActiveText[] = [];
     for (let i = 0; i < maxCount; i++) {
       initial.push(spawnText(Math.random() * 100, initial));
     }
+    
+    // Initial position set
+    initial.forEach(t => {
+      if (t.element) {
+        t.element.style.transform = `translate3d(${t.x}vw, ${t.y}vh, 0) translateY(-50%)`;
+      }
+    });
+    
     activeTextsRef.current = initial;
-    setRenderTrigger(v => v + 1);
 
     requestRef.current = requestAnimationFrame(updateTexts);
 
     return () => {
       if (requestRef.current) cancelAnimationFrame(requestRef.current);
+      // Cleanup DOM
+      if (containerRef.current) {
+        containerRef.current.innerHTML = '';
+      }
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [texts.join('|'), baseSize, fontFamily, isBold, speedMultiplier, maxCount, opacityMultiplier]);
 
   return (
-    <div ref={containerRef} className="fixed inset-0 pointer-events-none z-10 overflow-hidden">
-      {activeTextsRef.current.map((t) => (
-        <div
-          key={t.id}
-          className="absolute whitespace-nowrap text-yellow-600 tracking-widest uppercase"
-          style={{
-            left: 0,
-            top: `${t.y}vh`,
-            fontSize: `${t.size}vw`,
-            opacity: t.opacity,
-            fontFamily: fontFamily,
-            fontWeight: isBold ? 'bold' : 'normal',
-            textShadow: '0 0 20px rgba(255, 215, 0, 0.3)',
-            transform: `translate3d(${t.x}vw, -50%, 0)`,
-            willChange: 'transform',
-          }}
-        >
-          {t.text}
-        </div>
-      ))}
-    </div>
+    <div ref={containerRef} className="fixed inset-0 pointer-events-none z-10 overflow-hidden" />
   );
 };
 
 export default FlyingTextManager;
+
