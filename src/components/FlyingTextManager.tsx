@@ -18,6 +18,7 @@ interface ActiveText {
   speed: number;
   size: number;
   opacity: number;
+  widthVw: number;
   element?: HTMLDivElement;
 }
 
@@ -66,7 +67,7 @@ const FlyingTextManager: React.FC<FlyingTextProps> = ({
       const size = (Math.random() * 4 + 2) * baseSize; // 2 to 6 * baseSize relative to vw
       const speed = (Math.random() * 0.05 + 0.02) * speedMultiplier; // vw per frame (approx 60fps)
       const opacity = (Math.random() * 0.1 + 0.05) * opacityMultiplier; // 0.05 to 0.15 base
-      const x = startX !== undefined ? startX : 100 + Math.random() * 20;
+      const x = startX !== undefined ? startX : 100;
 
       let y = Math.random() * 80 + 10; // 10vh to 90vh
       let attempts = 0;
@@ -99,9 +100,16 @@ const FlyingTextManager: React.FC<FlyingTextProps> = ({
       el.style.willChange = 'transform';
       el.innerText = text;
       
+      // Set initial transform before appending to prevent flickering at (0,0)
+      el.style.transform = `translate3d(${x}vw, ${y}vh, 0) translateY(-50%)`;
+      
       if (containerRef.current) {
         containerRef.current.appendChild(el);
       }
+
+      // Measure width to know when it fully leaves the screen
+      const widthPx = el.offsetWidth;
+      const widthVw = (widthPx / window.innerWidth) * 100;
 
       return {
         id,
@@ -111,6 +119,7 @@ const FlyingTextManager: React.FC<FlyingTextProps> = ({
         speed,
         size,
         opacity,
+        widthVw,
         element: el
       };
     };
@@ -130,7 +139,8 @@ const FlyingTextManager: React.FC<FlyingTextProps> = ({
         const t = currentTexts[i];
         t.x -= t.speed * timeScale;
         
-        if (t.x > -200) {
+        // Check if the right edge of the text is still on screen
+        if (t.x + t.widthVw > 0) {
           if (t.element) {
             // Use translate3d for hardware acceleration
             t.element.style.transform = `translate3d(${t.x}vw, ${t.y}vh, 0) translateY(-50%)`;
@@ -171,13 +181,6 @@ const FlyingTextManager: React.FC<FlyingTextProps> = ({
     for (let i = 0; i < maxCount; i++) {
       initial.push(spawnText(Math.random() * 100, initial));
     }
-    
-    // Initial position set
-    initial.forEach(t => {
-      if (t.element) {
-        t.element.style.transform = `translate3d(${t.x}vw, ${t.y}vh, 0) translateY(-50%)`;
-      }
-    });
     
     activeTextsRef.current = initial;
 

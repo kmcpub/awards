@@ -254,15 +254,15 @@ const ParticleBackground: React.FC<ParticleBackgroundProps> = ({
       };
 
       // Left light source
-      const leftX = width * 0.15;
-      const leftY = -20;
+      const leftX = width * 0.05;
+      const leftY = -50;
       const leftAngle = getAngle(leftX, leftY) + swayLeft;
       drawBeam(leftX, leftY, leftAngle, width * 0.35, 0.2); 
       drawBeam(leftX, leftY, leftAngle, width * 0.15, 0.45); 
       
       // Right light source
-      const rightX = width * 0.85;
-      const rightY = -20;
+      const rightX = width * 0.95;
+      const rightY = -50;
       const rightAngle = getAngle(rightX, rightY) + swayRight;
       drawBeam(rightX, rightY, rightAngle, width * 0.35, 0.2); 
       drawBeam(rightX, rightY, rightAngle, width * 0.15, 0.45); 
