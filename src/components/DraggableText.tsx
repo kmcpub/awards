@@ -104,7 +104,7 @@ const DraggableText: React.FC<DraggableTextProps> = ({
           onChange={(e) => setText(e.target.value)}
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
-          className="bg-transparent border-b-2 border-yellow-500 outline-none text-center min-w-[20vw] select-auto"
+          className="bg-transparent border-b-2 border-yellow-500 outline-none text-center min-w-[20vw]"
           style={{ fontSize: 'inherit', color: 'inherit', fontFamily: 'inherit', fontWeight: 'inherit' }}
         />
       ) : (

@@ -251,11 +251,7 @@ export default function App() {
   const bgTextArray = bgTexts.split('\n').map(t => t.trim()).filter(t => t !== '');
 
   return (
-    <div 
-      className="relative w-screen h-screen overflow-hidden bg-black text-white font-serif select-none touch-none"
-      draggable="false"
-      onDragStart={(e) => e.preventDefault()}
-    >
+    <div className="relative w-screen h-screen overflow-hidden bg-black text-white font-serif">
       <ParticleBackground 
         showLights={showLights}
         showAurora={showAurora}
@@ -318,7 +314,7 @@ export default function App() {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="absolute top-0 right-0 bottom-0 w-96 bg-black/90 backdrop-blur-md border-l border-yellow-500/30 z-50 overflow-y-auto shadow-2xl shadow-black touch-auto"
+            className="absolute top-0 right-0 bottom-0 w-96 bg-black/90 backdrop-blur-md border-l border-yellow-500/30 z-50 overflow-y-auto shadow-2xl shadow-black"
           >
             <div className="sticky top-0 bg-black/90 backdrop-blur-md z-20 pb-4 mb-6 border-b border-yellow-500/30 px-6 pt-6 flex justify-between items-center">
               <h2 className="text-2xl font-serif text-yellow-500 tracking-widest uppercase">설정</h2>
